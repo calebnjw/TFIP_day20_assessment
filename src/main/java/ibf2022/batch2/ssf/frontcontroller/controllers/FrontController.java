@@ -67,6 +67,7 @@ public class FrontController {
 				System.out.println("FAIL COUNT: " + authFailCount);
 			} else {
 				authenticationService.disableUser(username);
+				authFailCount = 0;
 				System.out.println("USER LOGIN IS DISABLED");
 				return "redirect:/disabled";
 			}
