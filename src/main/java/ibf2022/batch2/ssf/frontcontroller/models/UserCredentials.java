@@ -4,10 +4,12 @@ import java.io.Serializable;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class UserCredentials implements Serializable {
+
   @NotNull(message = "Please enter a username.")
   @Size(min = 2, message = "Username must be at least 2 characters long.")
   private String username;
@@ -15,6 +17,9 @@ public class UserCredentials implements Serializable {
   @NotNull(message = "Please enter a password")
   @Size(min = 2, message = "Password must be at least 2 characters long.")
   private String password;
+
+  @Valid
+  private CaptchaInput captchaInput;
 
   public String getUsername() {
     return username;

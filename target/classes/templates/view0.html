@@ -28,6 +28,10 @@
             />
           </td>
         </tr>
+        <tr data-th-if="${#fields.hasErrors('username')}">
+          <td></td>
+          <td><span data-th-errors="*{username}"></span></td>
+        </tr>
         <tr>
           <td>
             <label for="password">Password:</label>
@@ -43,13 +47,21 @@
             />
           </td>
         </tr>
-        <tr data-th-if="${#fields.hasErrors('username')}">
-          <td></td>
-          <td><span data-th-errors="*{username}"></span></td>
-        </tr>
         <tr data-th-if="${#fields.hasErrors('password')}">
           <td></td>
           <td><span data-th-errors="*{password}"></span></td>
+        </tr>
+        <tr data-th-if="${authenticationFail}">
+          <td></td>
+          <td><span data-th-text="${authenticationMessage}"></span></td>
+        </tr>
+        <!-- <tr data-th-if="${captcha}">
+          <td></td>
+          <td><span data-th-text="${captcha}"></span><input data-th-field="*{captchaInput}" /></td>
+        </tr> -->
+        <tr data-th-if="${authenticationMessage}">
+          <td></td>
+          <td><span data-th-text="${authenticationMessage}"></span></td>
         </tr>
         <tr>
           <td></td>

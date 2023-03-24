@@ -1,6 +1,10 @@
 package ibf2022.batch2.ssf.frontcontroller.services;
 
+import java.time.Duration;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,6 +20,9 @@ public class AuthenticationService {
 	@Value("${ibf2022.batch3.ssf.auth.url}")
 	private String authUrl;
 
+	@Autowired
+	private RedisTemplate<String, String> redisTemplate;
+
 	// TODO: Task 2
 	// DO NOT CHANGE THE METHOD'S SIGNATURE
 	// Write the authentication method in here
@@ -25,9 +32,6 @@ public class AuthenticationService {
 		UserCredentials c = new UserCredentials();
 		c.setUsername(username);
 		c.setPassword(password);
-
-		System.out.println("URL POSTING TO: " + authUrl);
-		System.out.println("JSON BEING SENT: " + c.toJson().toString());
 
 		// create post request to send to chuk's url
 		// set headers
@@ -46,18 +50,22 @@ public class AuthenticationService {
 					String.class);
 
 		} catch (Exception exception) {
+			// throw exception with status code to frontcontroller
 			String statusCode = exception.getMessage().split(" ")[0];
 			System.out.println("STATUS CODE: " + statusCode);
 			throw new Exception(statusCode);
 		}
 
-		System.out.println("STATUS CODE: " + res.getStatusCode().toString().split(" ")[0]);
+		String statusCode = res.getStatusCode().toString().split(" ")[0];
+		System.out.println("STATUS CODE: " + statusCode);
 	}
 
 	// TODO: Task 3
 	// DO NOT CHANGE THE METHOD'S SIGNATURE
 	// Write an implementation to disable a user account for 30 mins
 	public void disableUser(String username) {
+		redisTemplate.opsForValue().set(username, "true");
+		redisTemplate.expire(username, Duration.ofMinutes(30));
 	}
 
 	// TODO: Task 5

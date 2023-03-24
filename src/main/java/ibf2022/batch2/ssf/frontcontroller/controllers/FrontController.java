@@ -1,6 +1,7 @@
 package ibf2022.batch2.ssf.frontcontroller.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,34 +19,101 @@ public class FrontController {
 	@Autowired
 	private AuthenticationService authenticationService;
 
-	@GetMapping(path = { "/", "/index.html" })
+	@Autowired
+	private RedisTemplate<String, String> redisTemplate;
+	Integer authFailCount = 0;
+
+	@GetMapping(path = { "/", "/index.html", "/login" })
 	public String goToLogin(Model model, HttpSession session) {
+		session.invalidate();
 		model.addAttribute("userCredentials", new UserCredentials());
-		// session.invalidate();
 		return "view0";
 	}
 
 	@PostMapping(path = { "/login" })
-	public String goToProtected(
+	public String authenticateLogin(
 			Model model,
-			HttpSession sess,
+			HttpSession session,
 			@Valid UserCredentials userCredentials,
 			BindingResult bindings) throws Exception {
 
+		// if any of the fields has errors
 		if (bindings.hasErrors()) {
 			return "view0";
 		}
 
-		// pass username and password to authentication service
+		String username = userCredentials.getUsername();
+		String password = userCredentials.getPassword();
+
+		session.setAttribute("username", username);
+
+		String disabled = redisTemplate.opsForValue().get(username);
+		System.out.println("USER DISABLED REDIS ENTRY: " + disabled);
+		if (disabled != null && disabled.equalsIgnoreCase("true")) {
+			return "redirect:/disabled";
+		}
+
 		try {
-			authenticationService.authenticate(userCredentials.getUsername(),
-					userCredentials.getPassword());
+			// pass username and password to authentication service
+			authenticationService.authenticate(
+					username,
+					password);
 		} catch (Exception e) {
-			// System.out.println("Credentials do not match. ");
-			System.out.println("HELLO YOU GOT THIS ERROR: " + e.getMessage());
+			// catch exception when status code is not 200s
+			String statusCode = e.getMessage();
+			String message = getAuthenticationMessage(statusCode);
+			if (authFailCount < 2) {
+				authFailCount += 1;
+				System.out.println("FAIL COUNT: " + authFailCount);
+			} else {
+				authenticationService.disableUser(username);
+				System.out.println("USER LOGIN IS DISABLED");
+				return "redirect:/disabled";
+			}
+
+			if (!message.isBlank()) {
+				model.addAttribute("authenticationFail", true);
+				model.addAttribute("authenticationMessage", message);
+			}
+
+			// insert captcha thing here
+			// if (authFailCount > 0) {
+			// Captcha captcha = new Captcha();
+			// model.addAttribute("captcha", captcha.toString());
+			// }
+
+			// show login page again
 			return "view0";
 		}
 
-		return "view1";
+		session.setAttribute("authenticated", true);
+		return "redirect:/protected/view1.html";
+	}
+
+	@GetMapping(path = "/disabled")
+	public String goToDisabled(Model model, HttpSession session) {
+		String username = (String) session.getAttribute("username");
+		model.addAttribute("username", username);
+
+		System.out.println("USER IS DISABLED: SENT TO VIEW 2.");
+
+		return "view2";
+	}
+
+	private String getAuthenticationMessage(String statusCode) {
+		String message = "";
+
+		switch (statusCode) {
+			case "400":
+				message = "Invalid payload.";
+				break;
+			case "401":
+				message = "Incorrect username and/or password.";
+				break;
+			default:
+				break;
+		}
+
+		return message;
 	}
 }
