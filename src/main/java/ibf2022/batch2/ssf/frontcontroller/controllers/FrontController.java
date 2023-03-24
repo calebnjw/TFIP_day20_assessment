@@ -48,7 +48,6 @@ public class FrontController {
 		session.setAttribute("username", username);
 
 		String disabled = redisTemplate.opsForValue().get(username);
-		System.out.println("USER DISABLED REDIS ENTRY: " + disabled);
 		if (disabled != null && disabled.equalsIgnoreCase("true")) {
 			return "redirect:/disabled";
 		}
@@ -64,11 +63,9 @@ public class FrontController {
 			String message = getAuthenticationMessage(statusCode);
 			if (authFailCount < 2) {
 				authFailCount += 1;
-				System.out.println("FAIL COUNT: " + authFailCount);
 			} else {
 				authenticationService.disableUser(username);
 				authFailCount = 0;
-				System.out.println("USER LOGIN IS DISABLED");
 				return "redirect:/disabled";
 			}
 
@@ -95,8 +92,6 @@ public class FrontController {
 	public String goToDisabled(Model model, HttpSession session) {
 		String username = (String) session.getAttribute("username");
 		model.addAttribute("username", username);
-
-		System.out.println("USER IS DISABLED: SENT TO VIEW 2.");
 
 		return "view2";
 	}

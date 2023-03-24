@@ -52,12 +52,10 @@ public class AuthenticationService {
 		} catch (Exception exception) {
 			// throw exception with status code to frontcontroller
 			String statusCode = exception.getMessage().split(" ")[0];
-			System.out.println("STATUS CODE: " + statusCode);
 			throw new Exception(statusCode);
 		}
 
 		String statusCode = res.getStatusCode().toString().split(" ")[0];
-		System.out.println("STATUS CODE: " + statusCode);
 	}
 
 	// TODO: Task 3

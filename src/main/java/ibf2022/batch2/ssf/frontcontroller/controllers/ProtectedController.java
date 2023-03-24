@@ -16,7 +16,6 @@ public class ProtectedController {
 	@GetMapping(path = { "/", "/view1.html" })
 	public String goToProtected(Model model, HttpSession session) {
 		Object authenticated = session.getAttribute("authenticated");
-		System.out.println("IS USER AUTHENTICATED? " + authenticated);
 		// checks if user is authenticated
 		// if not authenticated, go to login
 		if (authenticated == null || !authenticated.toString().equalsIgnoreCase("true")) {
